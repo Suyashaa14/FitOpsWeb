@@ -48,7 +48,7 @@ export default function AdminDashboard() {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn">{I.download} Export</button>
-            <button className="btn btn-accent" onClick={() => navigate('/admin/members')}>{I.plus} Add Member</button>
+            <button className="btn btn-accent" onClick={() => navigate('/admin/clients/onboarding')}>{I.plus} Add Client</button>
           </div>
         </div>
 
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
             <div className="card">
               <div className="section-title">
                 <h3>Upcoming membership expiry</h3>
-                <a style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/admin/members')}>View all →</a>
+                <a style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/admin/clients/onboarding')}>View all →</a>
               </div>
               {expiringList.map(m => (
                 <div key={m.id} className="member-row">
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
             <div className="card">
               <div className="section-title">
                 <h3>Pending approvals · {pendingList.length}</h3>
-                <a style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/admin/members')}>Review →</a>
+                <a style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/admin/clients/onboarding')}>Review →</a>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {pendingList.map(m => (

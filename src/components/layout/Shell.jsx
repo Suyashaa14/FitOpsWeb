@@ -4,14 +4,16 @@ import { useAuth } from '../../context/AuthContext';
 import { Logo, Avatar, I } from '../ui/index.jsx';
 
 const ownerNav = [
-  { id: 'dashboard',  path: '/admin',               label: 'Dashboard',       icon: I.dash },
-  { id: 'members',    path: '/admin/members',         label: 'Members',         icon: I.users },
-  { id: 'packages',   path: '/admin/packages',        label: 'Packages',        icon: I.package },
-  { id: 'qr-reg',     path: '/admin/qr-register',     label: 'QR Registration', icon: I.qr },
-  { id: 'qr-att',     path: '/admin/qr-attendance',   label: 'QR Attendance',   icon: I.qr },
-  { id: 'reports',    path: '/admin/reports',          label: 'Reports',         icon: I.chart },
-  { id: 'sms',        path: '/admin/sms',              label: 'Send SMS',        icon: I.send },
-  { id: 'templates',  path: '/admin/sms-templates',    label: 'SMS Templates',   icon: I.message },
+  { id: 'dashboard', path: '/admin', label: 'Dashboard', icon: I.dash },
+  { id: 'clients-title', label: 'Clients', section: true },
+  { id: 'clients-onboarding', path: '/admin/clients/onboarding', label: 'Onboarding', icon: I.user, sub: true },
+  { id: 'clients-payments', path: '/admin/clients/payments', label: 'Payments', icon: I.send, sub: true },
+  { id: 'packages', path: '/admin/packages', label: 'Packages', icon: I.package },
+  { id: 'qr-reg', path: '/admin/qr-register', label: 'QR Registration', icon: I.qr },
+  { id: 'qr-att', path: '/admin/qr-attendance', label: 'QR Attendance', icon: I.qr },
+  { id: 'reports', path: '/admin/reports', label: 'Reports', icon: I.chart },
+  { id: 'sms', path: '/admin/sms', label: 'Send SMS', icon: I.send },
+  { id: 'templates', path: '/admin/sms-templates', label: 'SMS Templates', icon: I.message },
 ];
 
 const superNav = [
@@ -66,16 +68,21 @@ export default function Shell({ role = 'admin', children }) {
         {/* Nav */}
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflowY: 'auto' }}>
           <div className="sidebar-section">{role === 'super' ? 'Platform' : 'Workspace'}</div>
-          {nav.map(n => (
-            <a
-              key={n.id}
-              className={`nav-item ${isActive(n.path) ? 'active' : ''}`}
-              onClick={() => navigate(n.path)}
-              style={{ cursor: 'pointer' }}
-            >
-              {n.icon}<span>{n.label}</span>
-            </a>
-          ))}
+          {nav.map((n) => {
+            if (n.section) {
+              return <div key={n.id} className="sidebar-section" style={{ marginTop: 8 }}>{n.label}</div>;
+            }
+            return (
+              <a
+                key={n.id}
+                className={`nav-item ${isActive(n.path) ? 'active' : ''}`}
+                onClick={() => navigate(n.path)}
+                style={{ cursor: 'pointer', marginLeft: n.sub ? 10 : 0 }}
+              >
+                {n.icon}<span>{n.label}</span>
+              </a>
+            );
+          })}
           <div className="sidebar-section" style={{ marginTop: 18 }}>Account</div>
           <a className="nav-item" style={{ cursor: 'pointer' }}>{I.cog}<span>Settings</span></a>
           <a className="nav-item" style={{ cursor: 'pointer' }} onClick={handleLogout}>{I.logout}<span>Sign out</span></a>

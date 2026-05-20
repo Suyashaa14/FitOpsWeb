@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 
 import AdminDashboard from './pages/admin/DashboardPage';
 import AdminMembers from './pages/admin/MembersPage';
+import AdminClientPayment from './pages/admin/ClientPaymentPage';
 import AdminPackages from './pages/admin/PackagesPage';
 import AdminQRRegister from './pages/admin/QRRegistrationPage';
 import AdminQRAttendance from './pages/admin/QRAttendancePage';
@@ -24,7 +25,9 @@ import SuperAnalytics from './pages/super/AnalyticsPage';
 
 function ProtectedRoute({ children, requiredRole }) {
   const { isAuthenticated, role } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to={requiredRole === 'super' ? '/super-admin/login' : '/login'} replace />;
+  }
   if (requiredRole && role !== requiredRole) {
     return <Navigate to={role === 'super' ? '/super' : '/admin'} replace />;
   }
@@ -41,10 +44,15 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage fixedRole="admin" />} />
+      <Route path="/super-admin/login" element={<LoginPage fixedRole="super" />} />
 
       <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/members" element={<ProtectedRoute requiredRole="admin"><AdminMembers /></ProtectedRoute>} />
+      <Route path="/admin/clients/onboarding" element={<ProtectedRoute requiredRole="admin"><AdminMembers /></ProtectedRoute>} />
+      <Route path="/admin/clients/payments" element={<ProtectedRoute requiredRole="admin"><AdminClientPayment /></ProtectedRoute>} />
+      <Route path="/admin/members" element={<Navigate to="/admin/clients/onboarding" replace />} />
+      <Route path="/admin/create-client" element={<Navigate to="/admin/clients/onboarding" replace />} />
+      <Route path="/admin/client-payment" element={<Navigate to="/admin/clients/payments" replace />} />
       <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin"><AdminPackages /></ProtectedRoute>} />
       <Route path="/admin/qr-register" element={<ProtectedRoute requiredRole="admin"><AdminQRRegister /></ProtectedRoute>} />
       <Route path="/admin/qr-attendance" element={<ProtectedRoute requiredRole="admin"><AdminQRAttendance /></ProtectedRoute>} />

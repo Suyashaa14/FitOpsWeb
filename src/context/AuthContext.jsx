@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { apiRequest } from '../lib/api';
 
 const AuthContext = createContext(null);
 
@@ -8,52 +9,50 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null;
   });
   const [role, setRole] = useState(() => localStorage.getItem('fitops_role') || null);
+  const [token, setToken] = useState(() => localStorage.getItem('fitops_token') || null);
 
-  const login = async (email, password, selectedRole = 'super') => {
+  const login = async (email, password, selectedRole = 'admin') => {
     if (selectedRole === 'super') {
-      try {
-        const res = await fetch('https://sass-gym-backend.vercel.app/api/superAdmin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const u = data.admin || data.user || { email, name: 'Super Admin' };
-          setUser(u); setRole('super');
-          localStorage.setItem('fitops_user', JSON.stringify(u));
-          localStorage.setItem('fitops_role', 'super');
-          return { role: 'super' };
-        }
-        const j = await res.json().catch(() => ({}));
-        if (res.status === 401 || res.status === 400) throw new Error(j.message || 'Invalid credentials');
-      } catch (err) {
-        if (email === 'admin@gmail.com' && password === 'admin@2345') {
-          const u = { email, name: 'Super Admin' };
-          setUser(u); setRole('super');
-          localStorage.setItem('fitops_user', JSON.stringify(u));
-          localStorage.setItem('fitops_role', 'super');
-          return { role: 'super', mock: true };
-        }
-        throw new Error('Could not reach server. Mock credentials: admin@gmail.com / admin@2345');
-      }
-    } else {
-      const u = { email, name: 'Suman Adhikari', gym: 'Iron Forge Fitness' };
-      setUser(u); setRole('admin');
+      const loginData = await apiRequest('/api/superAdmin/login', {
+        method: 'POST',
+        body: { email, password },
+      });
+      const authToken = loginData?.token || loginData?.accessToken || loginData?.jwt || null;
+      const meData = await apiRequest('/api/superAdmin/me', { token: authToken || undefined }).catch(() => null);
+      const u = meData?.admin || meData?.user || loginData?.admin || loginData?.user || { email, name: 'Super Admin' };
+
+      setUser(u); setRole('super'); setToken(authToken);
       localStorage.setItem('fitops_user', JSON.stringify(u));
-      localStorage.setItem('fitops_role', 'admin');
-      return { role: 'admin' };
+      localStorage.setItem('fitops_role', 'super');
+      if (authToken) localStorage.setItem('fitops_token', authToken);
+      else localStorage.removeItem('fitops_token');
+      return { role: 'super' };
     }
+
+    const loginData = await apiRequest('/api/user/Login', {
+      method: 'POST',
+      body: { email, password },
+    });
+    const authToken = loginData?.token || loginData?.accessToken || loginData?.jwt || null;
+    const u = loginData?.user || loginData?.admin || { email, name: 'Gym Owner' };
+
+    setUser(u); setRole('admin'); setToken(authToken);
+    localStorage.setItem('fitops_user', JSON.stringify(u));
+    localStorage.setItem('fitops_role', 'admin');
+    if (authToken) localStorage.setItem('fitops_token', authToken);
+    else localStorage.removeItem('fitops_token');
+    return { role: 'admin' };
   };
 
   const logout = () => {
-    setUser(null); setRole(null);
+    setUser(null); setRole(null); setToken(null);
     localStorage.removeItem('fitops_user');
     localStorage.removeItem('fitops_role');
+    localStorage.removeItem('fitops_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, role, token, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

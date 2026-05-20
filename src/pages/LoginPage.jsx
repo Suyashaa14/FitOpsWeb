@@ -5,23 +5,23 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Logo, I } from '../components/ui/index.jsx';
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('admin@gmail.com');
-  const [password, setPassword] = useState('admin@2345');
+export default function LoginPage({ fixedRole = 'admin' }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [role, setRole] = useState('super');
+  const [role] = useState(fixedRole);
   const { login } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
   async function submit(e) {
     e.preventDefault();
-    setError(''); setLoading(true);
+    setError('');
+    setLoading(true);
     try {
-      const result = await login(email, password, role);
-      if (result?.mock) toast('Live API unreachable — using mock', 'default');
-      else toast(role === 'super' ? 'Welcome back, Super Admin' : 'Welcome back, Suman', 'success');
+      await login(email, password, role);
+      toast(role === 'super' ? 'Welcome back, Super Admin' : 'Welcome back, Gym Owner', 'success');
       setTimeout(() => navigate(role === 'super' ? '/super' : '/admin'), 400);
     } catch (err) {
       setError(err.message);
@@ -32,7 +32,6 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-      {/* Left — form (light) */}
       <div style={{ display: 'flex', flexDirection: 'column', padding: '40px 56px', background: '#f6f3ee' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <a onClick={() => navigate('/')} style={{ cursor: 'pointer' }}><Logo light /></a>
@@ -54,19 +53,8 @@ export default function LoginPage() {
               Sign in to your FitOpsWeb workspace.
             </p>
 
-            {/* Role toggle */}
-            <div style={{ display: 'flex', padding: 4, background: '#e8e4dd', borderRadius: 10, border: '1px solid #d4cfc8', marginBottom: 22 }}>
-              {[{ v: 'super', l: 'Super Admin' }, { v: 'owner', l: 'Gym Owner' }].map(r => (
-                <button key={r.v} type="button" onClick={() => setRole(r.v)}
-                  style={{
-                    flex: 1, height: 34, borderRadius: 7, border: 'none',
-                    background: role === r.v ? '#0a0a09' : 'transparent',
-                    color: role === r.v ? '#f6f3ee' : '#6b7280',
-                    fontWeight: 600, fontSize: 13, transition: 'all .15s', cursor: 'pointer',
-                  }}>
-                  {r.l}
-                </button>
-              ))}
+            <div style={{ marginBottom: 22, padding: 10, borderRadius: 10, background: '#edeae4', border: '1px solid #d4cfc8', fontSize: 13, color: '#374151' }}>
+              {role === 'super' ? 'Super Admin secure sign-in' : 'Gym Owner sign-in'}
             </div>
 
             <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -92,16 +80,9 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
-                  <input type="checkbox" defaultChecked /> Remember me
-                </label>
-                <a style={{ fontSize: 13, color: '#4a7c00', fontWeight: 600, cursor: 'pointer' }}>Forgot password?</a>
-              </div>
-
               <button type="submit" className="btn btn-accent btn-lg" style={{ width: '100%', marginTop: 6, background: '#84cc16', color: '#0a0a09', fontWeight: 700 }} disabled={loading}>
                 {loading && <span className="spinner" />}
-                {loading ? 'Signing in…' : 'Sign in'}
+                {loading ? 'Signing in...' : 'Sign in'}
                 {!loading && I.arrow}
               </button>
             </form>
@@ -109,20 +90,17 @@ export default function LoginPage() {
             <div style={{ marginTop: 18, padding: 14, background: '#edeae4', border: '1px solid #d4cfc8', borderRadius: 10, fontSize: 12.5, color: '#6b7280', display: 'flex', gap: 10 }}>
               <span style={{ color: '#84cc16' }}>{I.shield}</span>
               <div>
-                {role === 'super' ? (
-                  <>Hitting live endpoint <span className="mono" style={{ color: '#374151', fontWeight: 600 }}>sass-gym-backend.vercel.app</span>. Falls back to mock: <span className="mono" style={{ color: '#374151', fontWeight: 600 }}>admin@gmail.com / admin@2345</span>.</>
-                ) : (
-                  <>Gym owner login is currently mocked — any credentials will log you into the demo workspace.</>
-                )}
+                {role === 'super'
+                  ? <>Authenticates against <span className="mono" style={{ color: '#374151', fontWeight: 600 }}>/api/superAdmin/login</span> and reads <span className="mono" style={{ color: '#374151', fontWeight: 600 }}>/api/superAdmin/me</span>.</>
+                  : <>Authenticates against <span className="mono" style={{ color: '#374151', fontWeight: 600 }}>/api/user/Login</span>.</>}
               </div>
             </div>
           </motion.div>
         </div>
 
-        <div style={{ color: '#9ca3af', fontSize: 12, fontFamily: 'var(--font-mono)' }}>© 2026 FitOpsWeb</div>
+        <div style={{ color: '#9ca3af', fontSize: 12, fontFamily: 'var(--font-mono)' }}>Copyright 2026 FitOpsWeb</div>
       </div>
 
-      {/* Right — visual (always dark, explicit colors to avoid token inversion) */}
       <div style={{ background: '#0f0f0e', color: '#f0ede8', padding: 48, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
         <div className="dot-bg" style={{ position: 'absolute', inset: 0, opacity: .07 }} />
 
@@ -134,38 +112,6 @@ export default function LoginPage() {
             Every rep,<br />every renewal,<br /><span style={{ color: '#bef264' }}>in one place.</span>
           </h2>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}
-        >
-          <div style={{ padding: 22, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '.08em' }}>TODAY · 06:42</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: '#bef264', background: 'rgba(190,242,100,.12)', padding: '2px 8px', borderRadius: 5 }}>LIVE</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 999, background: '#84cc16', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>RM</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, color: '#f0ede8' }}>Ram Sharma checked in</div>
-                <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.5)', fontFamily: 'var(--font-mono)' }}>Premium · 14d left · 6:42 AM</div>
-              </div>
-              <span style={{ color: '#bef264' }}>{I.check}</span>
-            </div>
-          </div>
-
-          <div style={{ padding: 22, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 16 }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 14 }}>EXPIRING SOON</div>
-            {[['Hari Thapa', '3 days', 'rgba(255,255,255,.55)'], ['Sita Karki', '7 days', '#bef264'], ['Aakash Pandey', '12 days', 'rgba(255,255,255,.55)']].map(([name, days, color]) => (
-              <div key={name} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: name !== 'Aakash Pandey' ? '1px solid rgba(255,255,255,.08)' : 'none', color: '#f0ede8' }}>
-                <span>{name}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color }}>{days}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </div>
   );
