@@ -269,7 +269,7 @@ export default function LandingPage() {
               <a key={l} style={{ fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}>{l}</a>
             ))}
             <a
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/super-admin/login')}
               style={{ fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}
             >
               Admin Login
