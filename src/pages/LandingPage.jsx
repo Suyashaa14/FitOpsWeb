@@ -268,6 +268,12 @@ export default function LandingPage() {
             {['Privacy', 'Terms', 'Status'].map(l => (
               <a key={l} style={{ fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}>{l}</a>
             ))}
+            <a
+              onClick={() => navigate('/login')}
+              style={{ fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}
+            >
+              Admin Login
+            </a>
           </div>
         </div>
       </footer>
