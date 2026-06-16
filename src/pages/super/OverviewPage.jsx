@@ -1,115 +1,170 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Shell from '../../components/layout/Shell';
 import { StatusBadge, I } from '../../components/ui/index.jsx';
-import { MOCK_GYMS, MOCK_MEMBERS } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { getGymOwners } from '../../lib/superAdminApi';
 
-function RevenueChart() {
-  const months = [240, 268, 295, 310, 288, 332, 362, 390, 412, 428, 462, 482];
-  const max = Math.max(...months);
-  const labels = ['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
-  const w = 600, h = 180, pad = 20;
-  const points = months.map((m, i) => [
-    pad + (i / (months.length - 1)) * (w - pad * 2),
-    h - pad - (m / max) * (h - pad * 2),
-  ]);
-  const path = points.map(([x, y], i) => (i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`)).join(' ');
-  const area = `${path} L ${points[points.length-1][0]} ${h - pad} L ${points[0][0]} ${h - pad} Z`;
-  return (
-    <div>
-      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 200 }}>
-        <path d={area} fill="var(--accent-soft)" />
-        <path d={path} stroke="var(--accent)" strokeWidth="2.5" fill="none" />
-        {points.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r={i === points.length - 1 ? 5 : 3}
-            fill={i === points.length - 1 ? 'var(--accent)' : 'var(--surface)'}
-            stroke="var(--accent)" strokeWidth="2" />
-        ))}
-      </svg>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
-        {labels.map(l => <span key={l}>{l}</span>)}
-      </div>
-    </div>
-  );
+function toDateInput(value) {
+  if (!value) return '';
+  const stringValue = String(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(stringValue)) return stringValue;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toISOString().slice(0, 10);
+}
+
+function extractOwners(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== 'object') return [];
+
+  if (payload.data && !Array.isArray(payload.data) && typeof payload.data === 'object') {
+    return [payload.data];
+  }
+
+  const likelyKeys = ['users', 'data', 'result', 'items', 'rows', 'gymOwners'];
+  for (const key of likelyKeys) {
+    if (Array.isArray(payload[key])) return payload[key];
+  }
+
+  const firstArray = Object.values(payload).find(Array.isArray);
+  if (firstArray) return firstArray;
+
+  if (payload.id || payload._id) return [payload];
+  return [];
+}
+
+function normalizeOwner(row = {}) {
+  const companyRef = row.company_id;
+  const company =
+    (companyRef && typeof companyRef === 'object' ? companyRef : null)
+    || row.company
+    || row.company_data
+    || row.companyData
+    || row;
+
+  return {
+    id: row.id || row._id || row.user_id || row.userId || company.user_id || company.userId,
+    company_name: company.company_name || company.name || '-',
+    company_url: company.company_url || company.url || '',
+    company_address: company.company_address || company.address || '',
+    company_phone_number: company.company_phone_number || company.phone_number || company.phone || '',
+    company_package_start_at: toDateInput(company.company_package_start_at || company.start_at || company.package_start_at),
+    company_package_end_at: toDateInput(company.company_package_end_at || company.expire_at || company.package_end_at),
+    name: row.name || row.owner_name || row.full_name || '-',
+    email: row.email || '-',
+    status: (row.status || row.account_status || company.status || 'active').toLowerCase(),
+  };
 }
 
 export default function SuperOverview() {
   const navigate = useNavigate();
-  const totalMembers = MOCK_GYMS.reduce((a, g) => a + g.members, 0);
-  const totalSms = MOCK_GYMS.reduce((a, g) => a + g.sms, 0);
-  const activeGyms = MOCK_GYMS.filter(g => g.status === 'active').length;
+  const { token } = useAuth();
+  const toast = useToast();
+  const [owners, setOwners] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadOwners() {
+    setLoading(true);
+    try {
+      const response = await getGymOwners({ token: token || undefined, page: 1, limit: 100 });
+      const list = extractOwners(response).map(normalizeOwner).filter((owner) => owner.id);
+      setOwners(list);
+    } catch (err) {
+      toast(err.message, 'error');
+      setOwners([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadOwners();
+  }, []);
+
+  const stats = useMemo(() => {
+    const active = owners.filter((owner) => owner.status === 'active').length;
+    const inactive = owners.filter((owner) => owner.status !== 'active').length;
+    const withActivePackage = owners.filter((owner) => owner.company_package_start_at || owner.company_package_end_at).length;
+    return {
+      total: owners.length,
+      active,
+      inactive,
+      withActivePackage,
+    };
+  }, [owners]);
+
+  const recentOwners = useMemo(() => owners.slice(0, 8), [owners]);
 
   return (
     <Shell role="super">
       <div className="page">
         <div className="page-header">
           <div>
-            <span className="h-eyebrow"><span className="dot" /> PLATFORM HEALTH</span>
-            <h1 className="page-title" style={{ marginTop: 10 }}>FitOpsWeb · Overview</h1>
-            <p className="page-sub">{activeGyms} active gyms · {totalMembers.toLocaleString()} members · {totalSms.toLocaleString()} SMS this month</p>
+            <h1 className="page-title">Super Admin Overview</h1>
+            <p className="page-sub">{loading ? 'Loading live platform data...' : 'Live gym owner summary from the super admin API'}</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn">{I.download} Export</button>
-            <button className="btn btn-accent">{I.plus} Onboard new gym</button>
+            <button className="btn" type="button" onClick={loadOwners} disabled={loading}>
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button className="btn btn-accent" type="button" onClick={() => navigate('/super/gyms')}>
+              {I.plus} Create Gym Owner
+            </button>
           </div>
         </div>
 
         <div className="kpi-grid" style={{ marginBottom: 22 }}>
           <div className="kpi accent">
-            <div className="kpi-label">Monthly revenue</div>
-            <div className="kpi-value">Rs 482k</div>
-            <div className="kpi-delta up">↑ 14% MoM</div>
-            <div className="kpi-glyph">{I.trend}</div>
+            <div className="kpi-label">Total gyms</div>
+            <div className="kpi-value">{stats.total}</div>
+            <div className="kpi-delta">from gym owner API</div>
+            <div className="kpi-glyph">{I.building}</div>
           </div>
-          <div className="kpi"><div className="kpi-label">Active gyms</div><div className="kpi-value">{activeGyms}</div><div className="kpi-delta up">↑ 2 this month</div><div className="kpi-glyph">{I.building}</div></div>
-          <div className="kpi"><div className="kpi-label">Total members</div><div className="kpi-value">{(totalMembers / 1000).toFixed(1)}k</div><div className="kpi-delta up">↑ 312</div><div className="kpi-glyph">{I.users}</div></div>
-          <div className="kpi"><div className="kpi-label">SMS sent</div><div className="kpi-value">{(totalSms / 1000).toFixed(1)}k</div><div className="kpi-delta">68% of pool</div><div className="kpi-glyph">{I.message}</div></div>
-          <div className="kpi"><div className="kpi-label">Churn rate</div><div className="kpi-value" style={{ color: 'var(--accent)' }}>1.8%</div><div className="kpi-delta down">↓ 0.4pp</div><div className="kpi-glyph">{I.heart}</div></div>
-          <div className="kpi"><div className="kpi-label">Trials → paid</div><div className="kpi-value">62%</div><div className="kpi-delta up">↑ 8pp</div><div className="kpi-glyph">{I.shield}</div></div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 18, marginBottom: 18 }}>
-          <div className="card">
-            <div className="section-title"><h3>Revenue · last 12 months</h3><span className="meta">Rs 4.8M YTD</span></div>
-            <RevenueChart />
+          <div className="kpi">
+            <div className="kpi-label">Active gyms</div>
+            <div className="kpi-value" style={{ color: 'var(--accent)' }}>{stats.active}</div>
+            <div className="kpi-delta">status active</div>
+            <div className="kpi-glyph">{I.check}</div>
           </div>
-          <div className="card">
-            <div className="section-title"><h3>Top gyms by members</h3><span className="meta">live</span></div>
-            {[...MOCK_GYMS].sort((a, b) => b.members - a.members).slice(0, 5).map((g, i) => (
-              <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
-                <span className="mono" style={{ fontSize: 13, color: 'var(--muted)', minWidth: 24 }}>#{i + 1}</span>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--surface-2)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{I.building}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13.5 }}>{g.name}</div>
-                  <div className="mono" style={{ fontSize: 11.5, color: 'var(--muted)' }}>{g.city} · {g.plan}</div>
-                </div>
-                <span style={{ fontWeight: 700 }}>{g.members}</span>
-              </div>
-            ))}
+          <div className="kpi">
+            <div className="kpi-label">Inactive gyms</div>
+            <div className="kpi-value" style={{ color: stats.inactive ? 'var(--danger)' : 'var(--ink)' }}>{stats.inactive}</div>
+            <div className="kpi-delta">non-active statuses</div>
+            <div className="kpi-glyph">{I.clock}</div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-label">Package dates</div>
+            <div className="kpi-value">{stats.withActivePackage}</div>
+            <div className="kpi-delta">gyms with package data</div>
+            <div className="kpi-glyph">{I.calendar}</div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="section-title">
-            <h3>Recent gym activity</h3>
-            <a style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/super/gyms')}>View all gyms →</a>
+        <div className="card card-flush" style={{ overflow: 'hidden' }}>
+          <div className="section-title" style={{ padding: '16px 16px 0' }}>
+            <h3>Recent gym owners</h3>
+            <a style={{ fontSize: 12.5, color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/super/gyms')}>View all gyms</a>
           </div>
           <table className="table">
-            <thead><tr><th>Gym</th><th>Owner</th><th>City</th><th>Plan</th><th>Members</th><th>SMS · mo</th><th>Joined</th><th>Status</th></tr></thead>
+            <thead>
+              <tr><th>Gym</th><th>Owner</th><th>Email</th><th>Phone</th><th>Package</th><th>Status</th></tr>
+            </thead>
             <tbody>
-              {MOCK_GYMS.map(g => (
-                <tr key={g.id}>
-                  <td><strong>{g.name}</strong></td>
-                  <td>{g.owner}</td>
-                  <td style={{ color: 'var(--muted)' }}>{g.city}</td>
-                  <td><span className="chip">{g.plan}</span></td>
-                  <td className="mono">{g.members}</td>
-                  <td className="mono">{g.sms}</td>
-                  <td className="mono" style={{ color: 'var(--muted)' }}>{g.joined}</td>
-                  <td><StatusBadge status={g.status} /></td>
+              {recentOwners.map((owner) => (
+                <tr key={owner.id}>
+                  <td><strong>{owner.company_name}</strong></td>
+                  <td>{owner.name}</td>
+                  <td>{owner.email}</td>
+                  <td className="mono">{owner.company_phone_number || '-'}</td>
+                  <td className="mono">{owner.company_package_start_at || '-'} to {owner.company_package_end_at || '-'}</td>
+                  <td><StatusBadge status={owner.status} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {!loading && !recentOwners.length && <div style={{ padding: 16, color: 'var(--muted)' }}>No gym owners found.</div>}
         </div>
       </div>
     </Shell>

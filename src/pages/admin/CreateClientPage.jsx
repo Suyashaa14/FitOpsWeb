@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Shell from '../../components/layout/Shell';
 import { I } from '../../components/ui/index.jsx';
@@ -13,11 +13,13 @@ const initialState = {
   address: '',
   age: '',
   status: 'pending',
+  photo: null,
 };
 
 export default function CreateClientPage() {
   const [form, setForm] = useState(initialState);
   const [saving, setSaving] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState('');
   const navigate = useNavigate();
   const toast = useToast();
   const { token } = useAuth();
@@ -25,6 +27,16 @@ export default function CreateClientPage() {
   function setField(key, value) {
     setForm((s) => ({ ...s, [key]: value }));
   }
+
+  useEffect(() => {
+    if (!(form.photo instanceof File)) {
+      setPhotoPreview('');
+      return undefined;
+    }
+    const objectUrl = URL.createObjectURL(form.photo);
+    setPhotoPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [form.photo]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -40,6 +52,7 @@ export default function CreateClientPage() {
         address: form.address.trim(),
         age: Number(form.age || 0),
         status: form.status,
+        photo: form.photo || undefined,
       }, token || undefined);
 
       toast('Client created successfully', 'success');
@@ -96,6 +109,50 @@ export default function CreateClientPage() {
             <div className="field" style={{ gridColumn: '1 / -1' }}>
               <label>Address</label>
               <input className="input" value={form.address} onChange={(e) => setField('address', e.target.value)} />
+            </div>
+            <div className="field" style={{ gridColumn: '1 / -1' }}>
+              <label>Photo</label>
+              <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 14, background: 'var(--surface-2)' }}>
+                <input
+                  id="create-client-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => setField('photo', e.target.files?.[0] || null)}
+                />
+
+                {!photoPreview && (
+                  <label
+                    htmlFor="create-client-photo-upload"
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '18px 8px' }}
+                  >
+                    <div style={{ width: 42, height: 42, borderRadius: 10, border: '1px solid var(--border)', display: 'grid', placeItems: 'center', background: 'var(--surface)' }}>
+                      {I.plus}
+                    </div>
+                    <div style={{ fontWeight: 600 }}>Upload client photo</div>
+                    <div className="mono" style={{ color: 'var(--muted)', fontSize: 12 }}>PNG, JPG, WEBP</div>
+                  </label>
+                )}
+
+                {photoPreview && (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <img
+                      src={photoPreview}
+                      alt="Client photo preview"
+                      style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)', background: 'white' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600 }}>{form.photo?.name || 'Selected photo'}</div>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <label htmlFor="create-client-photo-upload" className="btn btn-sm" style={{ cursor: 'pointer' }}>Replace</label>
+                        <button className="btn btn-ghost btn-sm" type="button" onClick={() => setField('photo', null)}>
+                          Clear file
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
