@@ -9,7 +9,6 @@ function toClientFormData(body = {}) {
   });
   if (body.photo instanceof File) {
     formData.append('photo', body.photo);
-    formData.append('file-photo', body.photo);
   }
   return formData;
 }
@@ -23,7 +22,6 @@ function toQrClientFormData(body = {}) {
   });
   if (body.photo instanceof File) {
     formData.append('photo', body.photo);
-    formData.append('file-photo', body.photo);
   }
   return formData;
 }
@@ -37,7 +35,6 @@ function toTrainerFormData(body = {}) {
   });
   if (body.photo instanceof File) {
     formData.append('photo', body.photo);
-    formData.append('file-photo', body.photo);
   }
   return formData;
 }

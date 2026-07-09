@@ -67,26 +67,6 @@ function extractOwners(payload) {
   return [];
 }
 
-function extractUpdateIds(payload, fallbackUserId, fallbackCompanyId) {
-  const row =
-    (payload?.data && !Array.isArray(payload.data) && typeof payload.data === 'object'
-      ? payload.data
-      : extractOwners(payload)[0]);
-  if (!row || typeof row !== 'object') {
-    return { userId: fallbackUserId, companyId: fallbackCompanyId };
-  }
-
-  const userId = row._id || row.id || row.user_id || row.userId || fallbackUserId;
-  const rawCompany = row.company_id;
-  const companyId =
-    (rawCompany && typeof rawCompany === 'object' ? rawCompany._id || rawCompany.id : rawCompany)
-    || row.companyId
-    || row.company_id
-    || fallbackCompanyId;
-
-  return { userId, companyId };
-}
-
 function normalizeOwner(row = {}) {
   const companyRef = row.company_id;
   const company =
@@ -325,13 +305,8 @@ export default function SuperGyms() {
     e.preventDefault();
     setSaving(true);
     try {
-      // Always fetch single user to get authoritative user and company ids for update endpoint.
-      const singleResponse = await getGymOwners({ token: token || undefined, id: selectedOwner?.id });
-      const { userId, companyId } = extractUpdateIds(
-        singleResponse,
-        selectedOwner?.id,
-        selectedOwner?.companyId,
-      );
+      const userId = selectedOwner?.id;
+      const companyId = selectedOwner?.companyId;
 
       if (!userId || !companyId) {
         throw new Error('Missing owner id or company id for update');

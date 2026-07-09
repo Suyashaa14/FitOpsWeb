@@ -37,14 +37,13 @@ export default function PackagesPage() {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const toast = useToast();
 
   async function loadPackages(currentPage = page) {
     setLoading(true);
     try {
       const query = new URLSearchParams({ page: String(currentPage), limit: String(limit) });
-      if (user?.id || user?._id) query.set('id', String(user.id || user._id));
       const data = await apiRequest(`/api/package/get?${query.toString()}`, { token: token || undefined });
       const list = Array.isArray(data) ? data : (data?.packages || data?.data || []);
       setPkgs(list);

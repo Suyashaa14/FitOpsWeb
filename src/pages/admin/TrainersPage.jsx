@@ -149,14 +149,13 @@ export default function TrainersPage() {
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const toast = useToast();
 
   async function loadData() {
     setLoading(true);
     try {
-      const ownerId = user?.id || user?._id;
-      const trainerRes = await getTrainers({ token: token || undefined, id: ownerId });
+      const trainerRes = await getTrainers({ token: token || undefined });
       const trainerList = Array.isArray(trainerRes) ? trainerRes : (trainerRes?.trainers || trainerRes?.data || []);
       setTrainers(trainerList.map((t) => ({ ...t, id: t.id || t._id, status: normalizeStatus(t.status) })));
     } catch (err) {

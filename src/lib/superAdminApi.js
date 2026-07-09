@@ -24,9 +24,8 @@ function buildGymOwnerFormData(payload = {}) {
   return fd;
 }
 
-export async function getGymOwners({ token, id, page, limit } = {}) {
+export async function getGymOwners({ token, page, limit } = {}) {
   const query = new URLSearchParams();
-  if (id) query.set('id', String(id));
   if (page) query.set('page', String(page));
   if (limit) query.set('limit', String(limit));
   const suffix = query.toString() ? `?${query.toString()}` : '';

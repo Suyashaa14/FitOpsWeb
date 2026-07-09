@@ -145,14 +145,13 @@ export default function MembersPage() {
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const toast = useToast();
 
   async function loadData() {
     setLoading(true);
     try {
-      const ownerId = user?.id || user?._id;
-      const clientRes = await getClients({ token: token || undefined, id: ownerId });
+      const clientRes = await getClients({ token: token || undefined });
       const clientList = Array.isArray(clientRes) ? clientRes : (clientRes?.clients || clientRes?.data || []);
       setClients(clientList.map((c) => ({ ...c, id: c.id || c._id, status: normalizeStatus(c.status) })));
     } catch (err) {

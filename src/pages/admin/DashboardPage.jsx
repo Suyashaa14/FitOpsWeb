@@ -24,7 +24,7 @@ function readList(response, keys) {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [clients, setClients] = useState([]);
   const [trainers, setTrainers] = useState([]);
   const [packages, setPackages] = useState([]);
@@ -35,13 +35,11 @@ export default function AdminDashboard() {
     async function loadDashboard() {
       setLoading(true);
       try {
-        const ownerId = user?.id || user?._id;
         const query = new URLSearchParams({ page: '1', limit: '100' });
-        if (ownerId) query.set('id', String(ownerId));
 
         const [clientRes, trainerRes, packageRes, paymentRes] = await Promise.all([
-          getClients({ token: token || undefined, id: ownerId }),
-          getTrainers({ token: token || undefined, id: ownerId }).catch(() => []),
+          getClients({ token: token || undefined }),
+          getTrainers({ token: token || undefined }).catch(() => []),
           apiRequest(`/api/package/get?${query.toString()}`, { token: token || undefined }).catch(() => []),
           getClientPayments(token || undefined).catch(() => []),
         ]);

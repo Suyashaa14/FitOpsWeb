@@ -13,6 +13,8 @@ import AdminTrainers from './pages/admin/TrainersPage';
 import AdminPackages from './pages/admin/PackagesPage';
 import AdminQRRegister from './pages/admin/QRRegistrationPage';
 import AdminQRAttendance from './pages/admin/QRAttendancePage';
+import PublicQRClientForm from './pages/public/QRClientFormPage';
+import PublicQRAttendanceForm from './pages/public/QRAttendanceFormPage';
 
 import SuperOverview from './pages/super/OverviewPage';
 import SuperGyms from './pages/super/GymsPage';
@@ -51,6 +53,8 @@ function AppRoutes() {
       <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin"><AdminPackages /></ProtectedRoute>} />
       <Route path="/admin/qr-register" element={<ProtectedRoute requiredRole="admin"><AdminQRRegister /></ProtectedRoute>} />
       <Route path="/admin/qr-attendance" element={<ProtectedRoute requiredRole="admin"><AdminQRAttendance /></ProtectedRoute>} />
+      <Route path="/qr-register" element={<PublicQRClientForm />} />
+      <Route path="/qr-attendance" element={<PublicQRAttendanceForm />} />
       <Route path="/admin/reports" element={<Navigate to="/admin" replace />} />
       <Route path="/admin/sms" element={<Navigate to="/admin" replace />} />
       <Route path="/admin/sms-templates" element={<Navigate to="/admin" replace />} />

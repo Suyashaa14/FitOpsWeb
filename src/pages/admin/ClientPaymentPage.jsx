@@ -103,7 +103,7 @@ export default function ClientPaymentPage() {
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const toast = useToast();
 
   function dateOnly(v) {
@@ -115,10 +115,9 @@ export default function ClientPaymentPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const ownerId = user?.id || user?._id;
       const [paymentRes, clientRes, pkgRes] = await Promise.all([
         getClientPayments(token || undefined).catch(() => []),
-        getClients({ token: token || undefined, id: ownerId }),
+        getClients({ token: token || undefined }),
         apiRequest('/api/package/get?page=1&limit=100', { token: token || undefined }).catch(() => []),
       ]);
 
