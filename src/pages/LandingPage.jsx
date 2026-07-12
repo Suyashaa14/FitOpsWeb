@@ -45,13 +45,13 @@ export default function LandingPage() {
       {/* NAV */}
       <nav className="landing-nav" style={{ borderBottomColor: scrolled ? 'var(--border)' : 'transparent' }}>
         <Logo />
-        <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
+        <div className="landing-nav-links" style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
           {['Features', 'How it works', 'Pricing', 'Contact'].map(l => (
             <a key={l} href={`#${l.toLowerCase().replace(/ /g, '-')}`}
               style={{ color: 'var(--ink-soft)', fontSize: 14, fontWeight: 500 }}>{l}</a>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="landing-nav-actions" style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-ghost" onClick={goToAdminEntry}>Sign in</button>
           <button className="btn btn-accent" onClick={goToAdminEntry}>Start free trial {I.arrow}</button>
         </div>
@@ -59,7 +59,7 @@ export default function LandingPage() {
 
       {/* HERO */}
       <section className="landing-hero">
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 60, alignItems: 'center' }}>
+        <div className="landing-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 60, alignItems: 'center' }}>
           <motion.div variants={stagger} initial="hidden" animate="show">
             <motion.span variants={fadeUp} className="h-eyebrow"><span className="dot" /> v2.6 · Now with QR auto-renewal</motion.span>
             <motion.h1 variants={fadeUp} className="display">
@@ -71,7 +71,7 @@ export default function LandingPage() {
               FitOpsWeb is the operating system for modern fitness studios. Members, packages,
               attendance, SMS — one connected platform that scales with every barbell you add.
             </motion.p>
-            <motion.div variants={fadeUp} style={{ display: 'flex', gap: 12, marginTop: 32 }}>
+            <motion.div className="landing-hero-actions" variants={fadeUp} style={{ display: 'flex', gap: 12, marginTop: 32 }}>
               <button className="btn btn-accent btn-lg" onClick={goToAdminEntry}>Start 30-day trial {I.arrow}</button>
               <button className="btn btn-lg">Book a demo</button>
             </motion.div>
@@ -134,7 +134,7 @@ export default function LandingPage() {
 
       {/* Logo strip */}
       <section style={{ padding: '40px 48px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 40, flexWrap: 'wrap' }}>
+        <div className="landing-logo-strip" style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 40, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontFamily: 'var(--font-mono)' }}>Trusted by 640+ gyms ↓</span>
           {['IRON FORGE', 'PULSE CLUB', 'APEX·STR', 'VERTEX', 'CORE/PERF', 'TITAN LIFT'].map(n => (
             <span key={n} style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--muted)', letterSpacing: '.02em' }}>{n}</span>
@@ -144,7 +144,7 @@ export default function LandingPage() {
 
       {/* FEATURES */}
       <section className="landing-section" id="features">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48, gap: 24 }}>
+        <div className="landing-feature-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48, gap: 24 }}>
           <div>
             <span className="h-eyebrow">FEATURES</span>
             <h2 style={{ fontSize: 'clamp(36px, 4vw, 56px)', fontWeight: 800, letterSpacing: '-.03em', margin: '18px 0 0', lineHeight: 1 }}>
@@ -191,7 +191,7 @@ export default function LandingPage() {
           <h2 style={{ fontSize: 'clamp(36px, 4vw, 56px)', fontWeight: 800, letterSpacing: '-.03em', margin: '18px 0 40px', lineHeight: 1, maxWidth: 800 }}>
             From <span style={{ color: 'var(--lime)' }}>cold lead</span> to checked-in member in under <span style={{ color: 'var(--lime)' }}>90 seconds</span>.
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginTop: 40 }}>
+          <div className="landing-how-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginTop: 40 }}>
             {[
               { n: '01', t: 'Member scans QR', d: 'Walk-in scans the gym\'s registration QR. No app install needed.' },
               { n: '02', t: 'Fills form on phone', d: 'Name, phone, package. Submits — status set to Pending.' },
@@ -219,6 +219,7 @@ export default function LandingPage() {
         </div>
         <motion.div
           variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
+          className="landing-pricing-grid"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, maxWidth: 1100, margin: '0 auto' }}
         >
           {[
@@ -255,14 +256,14 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="landing-section" id="contact" style={{ paddingTop: 40 }}>
-        <div className="card" style={{ padding: '56px 48px', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap', borderRadius: 22 }}>
+        <div className="card landing-cta" style={{ padding: '56px 48px', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap', borderRadius: 22 }}>
           <div>
             <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 800, letterSpacing: '-.03em', margin: 0, lineHeight: 1.05, maxWidth: 600 }}>
               Stop chasing renewals. <span style={{ color: 'var(--accent)' }}>Start training them.</span>
             </h2>
             <p style={{ color: 'var(--muted)', margin: '12px 0 0', fontSize: 16 }}>30-day trial. No card. No setup fee.</p>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="landing-cta-actions" style={{ display: 'flex', gap: 10 }}>
             <button className="btn btn-accent btn-lg" onClick={goToAdminEntry}>Start trial {I.arrow}</button>
             <button className="btn btn-lg">Book demo</button>
           </div>
@@ -271,10 +272,10 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--border)', padding: '40px 48px', marginTop: 40 }}>
-        <div style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
+        <div className="landing-footer" style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
           <Logo />
           <span style={{ color: 'var(--muted)', fontSize: 13, fontFamily: 'var(--font-mono)' }}>© 2026 FitOpsWeb · Built for sweat</span>
-          <div style={{ display: 'flex', gap: 18 }}>
+          <div className="landing-footer-links" style={{ display: 'flex', gap: 18 }}>
             {['Privacy', 'Terms', 'Status'].map(l => (
               <a key={l} style={{ fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}>{l}</a>
             ))}

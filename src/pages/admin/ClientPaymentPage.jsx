@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Shell from '../../components/layout/Shell';
 import { I } from '../../components/ui/index.jsx';
@@ -95,12 +96,13 @@ function PaymentFormModal({ initial, onClose, onSave, saving, clients, packages 
 }
 
 export default function ClientPaymentPage() {
+  const [searchParams] = useSearchParams();
   const [payments, setPayments] = useState([]);
   const [clients, setClients] = useState([]);
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
   const { token } = useAuth();
@@ -139,6 +141,10 @@ export default function ClientPaymentPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setQ(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const joined = useMemo(() => payments.map((p) => {
     const rawClientId = p.client_id?._id || p.client_id?.id || p.client_id || p.clientId || p.client?.id || p.client?._id;

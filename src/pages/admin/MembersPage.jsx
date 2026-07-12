@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Shell from '../../components/layout/Shell';
 import { Avatar, StatusBadge, I } from '../../components/ui/index.jsx';
@@ -138,10 +139,11 @@ function ClientFormModal({ initial, onClose, onSave, saving }) {
 }
 
 export default function MembersPage() {
+  const [searchParams] = useSearchParams();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
@@ -165,6 +167,10 @@ export default function MembersPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setQ(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const filtered = useMemo(() => clients.filter((c) => {
     if (filter !== 'all' && c.status !== filter) return false;

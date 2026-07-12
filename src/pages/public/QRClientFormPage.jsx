@@ -97,7 +97,7 @@ export default function QRClientFormPage() {
               Your registration was submitted successfully.
             </div>
           )}
-          <form onSubmit={submitClient} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <form className="responsive-form-grid" onSubmit={submitClient} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div className="field" style={{ gridColumn: '1 / -1' }}>
               <label>Full name</label>
               <input className="input" value={form.name} onChange={(e) => setField('name', e.target.value)} required />

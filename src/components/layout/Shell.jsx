@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -23,11 +24,16 @@ export default function Shell({ role = 'admin', children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const nav = role === 'super' ? superNav : ownerNav;
   const orgName = role === 'super' ? 'Platform HQ' : (user?.gym || user?.company_name || 'Workspace');
   const userName = role === 'super' ? 'Super Admin' : (user?.name || user?.email || 'Owner');
   const orgInitials = orgName.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase();
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   function handleLogout() {
     logout();
@@ -41,9 +47,14 @@ export default function Shell({ role = 'admin', children }) {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {mobileOpen && <button className="sidebar-backdrop" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
+
+      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
         <div style={{ padding: '4px 8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Logo />
+          <button className="mobile-sidebar-close" type="button" onClick={() => setMobileOpen(false)}>
+            {I.close}
+          </button>
         </div>
 
         <div style={{ padding: '6px 8px 14px' }}>
@@ -83,19 +94,17 @@ export default function Shell({ role = 'admin', children }) {
 
       <div className="main">
         <header className="topbar">
-          <div className="search" style={{ minWidth: 260, flex: 1, maxWidth: 360 }}>
-            {I.search}
-            <input placeholder={role === 'super' ? 'Search gyms, members, plans...' : 'Search clients, trainers, packages...'} />
-            <span className="kbd">Ctrl K</span>
+          <button className="btn btn-ghost btn-icon mobile-nav-toggle" type="button" onClick={() => setMobileOpen(true)}>
+            {I.menu}
+          </button>
+          <div className="mobile-topbar-brand">
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.02em' }}>{role === 'super' ? 'Platform HQ' : orgName}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{role === 'super' ? 'Super Admin' : 'Owner Workspace'}</div>
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <button className="btn btn-ghost btn-sm">{I.bell}</button>
-            <button className="btn btn-sm" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--accent)', flexShrink: 0 }} /> Live
-            </button>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)' }}>
+          <div className="topbar-actions" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div className="topbar-user" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <Avatar name={userName} size="sm" />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="topbar-user-meta" style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: 12.5, fontWeight: 600 }}>{userName}</span>
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{role === 'super' ? 'Super Admin' : 'Owner'}</span>
               </div>

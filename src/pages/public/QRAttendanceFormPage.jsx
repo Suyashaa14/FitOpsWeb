@@ -125,7 +125,7 @@ export default function QRAttendanceFormPage() {
             Use the same phone number each time. If an active attendance record is found on this device, the check-out form will open automatically.
           </div>
 
-          <form onSubmit={mode === 'checkout' ? handleCheckOut : handleCheckIn} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <form className="responsive-form-grid" onSubmit={mode === 'checkout' ? handleCheckOut : handleCheckIn} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div className="field">
               <label>Phone number</label>
               <input

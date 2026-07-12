@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Shell from '../../components/layout/Shell';
 import { Avatar, StatusBadge, I } from '../../components/ui/index.jsx';
@@ -142,10 +143,11 @@ function TrainerFormModal({ initial, onClose, onSave, saving }) {
 }
 
 export default function TrainersPage() {
+  const [searchParams] = useSearchParams();
   const [trainers, setTrainers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
@@ -169,6 +171,10 @@ export default function TrainersPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setQ(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const filtered = useMemo(() => trainers.filter((trainer) => {
     if (filter !== 'all' && trainer.status !== filter) return false;

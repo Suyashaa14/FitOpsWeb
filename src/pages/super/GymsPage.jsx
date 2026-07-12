@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Shell from '../../components/layout/Shell';
 import { I } from '../../components/ui/index.jsx';
@@ -209,12 +210,14 @@ function GymOwnerModal({
 }
 
 export default function SuperGyms() {
+  const [searchParams] = useSearchParams();
   const [owners, setOwners] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [createForm, setCreateForm] = useState(initialForm);
   const [editForm, setEditForm] = useState(initialForm);
   const [selectedOwner, setSelectedOwner] = useState(null);
@@ -222,7 +225,13 @@ export default function SuperGyms() {
   const { token } = useAuth();
   const toast = useToast();
 
-  const hasOwners = useMemo(() => owners.length > 0, [owners.length]);
+  const filteredOwners = useMemo(() => owners.filter((owner) => {
+    if (!q) return true;
+    const haystack = `${owner.company_name} ${owner.name} ${owner.email} ${owner.company_phone_number}`.toLowerCase();
+    return haystack.includes(q.toLowerCase());
+  }), [owners, q]);
+
+  const hasOwners = useMemo(() => filteredOwners.length > 0, [filteredOwners.length]);
 
   async function loadOwners() {
     setLoading(true);
@@ -240,6 +249,10 @@ export default function SuperGyms() {
   useEffect(() => {
     loadOwners();
   }, []);
+
+  useEffect(() => {
+    setQ(searchParams.get('q') || '');
+  }, [searchParams]);
 
   function resetCreateForm() {
     setCreateForm(initialForm);
@@ -367,6 +380,14 @@ export default function SuperGyms() {
             </button>
           </div>
 
+          <div style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="search" style={{ minWidth: 320, flex: 1, maxWidth: 460 }}>
+              {I.search}<input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search gym, owner, email, or phone" />
+            </div>
+            <div style={{ flex: 1 }} />
+            <span className="mono" style={{ fontSize: 12, color: 'var(--muted)' }}>{filteredOwners.length} of {owners.length}</span>
+          </div>
+
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -397,7 +418,7 @@ export default function SuperGyms() {
                   </tr>
                 )}
 
-                {!loading && owners.map((owner) => (
+                {!loading && filteredOwners.map((owner) => (
                   <tr key={owner.id} style={{ borderTop: '1px solid var(--border)' }}>
                     <td style={{ padding: '10px 8px' }}>{owner.company_name}</td>
                     <td style={{ padding: '10px 8px' }}>{owner.name}</td>

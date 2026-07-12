@@ -36,14 +36,14 @@ export default function LoginPage({ fixedRole = 'admin' }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', padding: '40px 56px', background: '#f6f3ee' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="login-shell" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div className="login-panel" style={{ display: 'flex', flexDirection: 'column', padding: '40px 56px', background: '#f6f3ee' }}>
+        <div className="login-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <a onClick={() => navigate('/')} style={{ cursor: 'pointer' }}><Logo light /></a>
           <button onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, color: '#6b7280', background: 'none', border: '1px solid #d4cfc8', borderRadius: 7, padding: '6px 14px', cursor: 'pointer' }}>{I.back} Back to site</button>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', maxWidth: 420, margin: '0 auto', width: '100%' }}>
+        <div className="login-form-wrap" style={{ flex: 1, display: 'flex', alignItems: 'center', maxWidth: 420, margin: '0 auto', width: '100%' }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ export default function LoginPage({ fixedRole = 'admin' }) {
         <div style={{ color: '#9ca3af', fontSize: 12, fontFamily: 'var(--font-mono)' }}>Copyright 2026 FitOpsWeb</div>
       </div>
 
-      <div style={{ background: '#0f0f0e', color: '#f0ede8', padding: 48, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+      <div className="login-art" style={{ background: '#0f0f0e', color: '#f0ede8', padding: 48, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
         <div className="dot-bg" style={{ position: 'absolute', inset: 0, opacity: .07 }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
