@@ -28,7 +28,7 @@ function toQrClientFormData(body = {}) {
 
 function toTrainerFormData(body = {}) {
   const formData = new FormData();
-  const fields = ['name', 'address', 'experience', 'phone_number', 'age', 'sex', 'status'];
+  const fields = ['name', 'address', 'experience', 'phone_number', 'age', 'sex'];
   fields.forEach((key) => {
     const value = body[key];
     if (value !== undefined && value !== null) formData.append(key, String(value));

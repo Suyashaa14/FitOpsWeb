@@ -2,16 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Shell from '../../components/layout/Shell';
-import { Avatar, StatusBadge, I } from '../../components/ui/index.jsx';
+import { Avatar, I } from '../../components/ui/index.jsx';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { createTrainer, deleteTrainer, getTrainers, updateTrainer } from '../../lib/adminApi';
-
-function normalizeStatus(value) {
-  const v = (value || '').toLowerCase();
-  if (['active', 'pending', 'expired', 'deactivated'].includes(v)) return v;
-  return 'pending';
-}
 
 function TrainerFormModal({ initial, onClose, onSave, saving }) {
   const [f, setF] = useState(initial || {
@@ -21,7 +15,6 @@ function TrainerFormModal({ initial, onClose, onSave, saving }) {
     sex: 'M',
     address: '',
     age: '',
-    status: 'pending',
     photo: null,
   });
   const [photoPreview, setPhotoPreview] = useState('');
@@ -73,15 +66,6 @@ function TrainerFormModal({ initial, onClose, onSave, saving }) {
             <div className="field">
               <label>Age</label>
               <input className="input mono" type="number" value={f.age} onChange={(e) => set('age', e.target.value)} />
-            </div>
-            <div className="field">
-              <label>Status</label>
-              <select className="select" value={f.status} onChange={(e) => set('status', e.target.value)}>
-                <option value="pending">Pending</option>
-                <option value="active">Active</option>
-                <option value="expired">Expired</option>
-                <option value="deactivated">Deactivated</option>
-              </select>
             </div>
             <div className="field" style={{ gridColumn: '1 / -1' }}>
               <label>Address</label>
@@ -148,7 +132,6 @@ export default function TrainersPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [q, setQ] = useState(() => searchParams.get('q') || '');
-  const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState(null);
   const { token } = useAuth();
@@ -159,7 +142,7 @@ export default function TrainersPage() {
     try {
       const trainerRes = await getTrainers({ token: token || undefined });
       const trainerList = Array.isArray(trainerRes) ? trainerRes : (trainerRes?.trainers || trainerRes?.data || []);
-      setTrainers(trainerList.map((t) => ({ ...t, id: t.id || t._id, status: normalizeStatus(t.status) })));
+      setTrainers(trainerList.map((t) => ({ ...t, id: t.id || t._id })));
     } catch (err) {
       toast(err.message, 'error');
       setTrainers([]);
@@ -177,18 +160,9 @@ export default function TrainersPage() {
   }, [searchParams]);
 
   const filtered = useMemo(() => trainers.filter((trainer) => {
-    if (filter !== 'all' && trainer.status !== filter) return false;
     if (q && !(`${trainer.name || ''} ${trainer.phone_number || ''} ${trainer.experience || ''}`.toLowerCase().includes(q.toLowerCase()))) return false;
     return true;
-  }), [trainers, q, filter]);
-
-  const counts = useMemo(() => ({
-    all: trainers.length,
-    active: trainers.filter((trainer) => trainer.status === 'active').length,
-    pending: trainers.filter((trainer) => trainer.status === 'pending').length,
-    expired: trainers.filter((trainer) => trainer.status === 'expired').length,
-    deactivated: trainers.filter((trainer) => trainer.status === 'deactivated').length,
-  }), [trainers]);
+  }), [trainers, q]);
 
   async function saveTrainer(data) {
     setSaving(true);
@@ -200,7 +174,6 @@ export default function TrainersPage() {
         phone_number: data.phone,
         age: Number(data.age || 0),
         sex: data.sex,
-        status: data.status,
         photo: data.photo || undefined,
       };
 
@@ -242,14 +215,6 @@ export default function TrainersPage() {
           <button className="btn btn-accent" onClick={() => setEditing('new')}>{I.plus} Create Trainer</button>
         </div>
 
-        <div className="tabs">
-          {[['all', 'All'], ['active', 'Active'], ['pending', 'Pending'], ['expired', 'Expired'], ['deactivated', 'Deactivated']].map(([id, label]) => (
-            <div key={id} className={`tab ${filter === id ? 'active' : ''}`} onClick={() => setFilter(id)}>
-              {label} <span className="mono" style={{ fontSize: 11, marginLeft: 4, color: 'var(--muted)' }}>{counts[id]}</span>
-            </div>
-          ))}
-        </div>
-
         <div style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="search" style={{ minWidth: 320, flex: 1, maxWidth: 460 }}>
             {I.search}<input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, phone, or experience" />
@@ -263,7 +228,7 @@ export default function TrainersPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Trainer</th><th>Phone</th><th>Experience</th><th>Sex</th><th>Age</th><th>Status</th><th style={{ width: 80 }}></th>
+                  <th>Trainer</th><th>Phone</th><th>Experience</th><th>Sex</th><th>Age</th><th style={{ width: 80 }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -282,7 +247,6 @@ export default function TrainersPage() {
                     <td>{trainer.experience || '-'}</td>
                     <td>{trainer.sex || '-'}</td>
                     <td className="mono">{trainer.age ?? '-'}</td>
-                    <td><StatusBadge status={trainer.status} /></td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
                         <button className="btn btn-sm btn-icon" onClick={() => setEditing({
@@ -293,7 +257,6 @@ export default function TrainersPage() {
                           sex: trainer.sex || 'M',
                           address: trainer.address || '',
                           age: trainer.age || '',
-                          status: trainer.status,
                           photo: null,
                         })}>{I.edit}</button>
                         <button className="btn btn-sm btn-icon btn-danger" onClick={() => delTrainer(trainer.id)}>{I.trash}</button>
@@ -322,7 +285,6 @@ export default function TrainersPage() {
                 <div className="mono">Address: {view.address || '-'}</div>
                 <div className="mono">Sex: {view.sex || '-'}</div>
                 <div className="mono">Age: {view.age ?? '-'}</div>
-                <div className="mono">Status: {view.status || '-'}</div>
               </div>
             </motion.div>
           </div>
