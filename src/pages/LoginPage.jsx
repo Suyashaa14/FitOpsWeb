@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,9 +11,14 @@ export default function LoginPage({ fixedRole = 'admin' }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [role] = useState(fixedRole);
-  const { login } = useAuth();
+  const { login, isAuthenticated, role: authRole } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    navigate(authRole === 'super' ? '/super' : '/admin', { replace: true });
+  }, [authRole, isAuthenticated, navigate]);
 
   async function submit(e) {
     e.preventDefault();

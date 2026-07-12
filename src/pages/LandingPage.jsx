@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Logo, I } from '../components/ui/index.jsx';
+import { useAuth } from '../context/AuthContext';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -22,7 +23,16 @@ function HeatmapPreview() {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, role } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+
+  function goToAdminEntry() {
+    if (isAuthenticated) {
+      navigate(role === 'super' ? '/super' : '/admin');
+      return;
+    }
+    navigate('/login');
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -42,8 +52,8 @@ export default function LandingPage() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-ghost" onClick={() => navigate('/login')}>Sign in</button>
-          <button className="btn btn-accent" onClick={() => navigate('/login')}>Start free trial {I.arrow}</button>
+          <button className="btn btn-ghost" onClick={goToAdminEntry}>Sign in</button>
+          <button className="btn btn-accent" onClick={goToAdminEntry}>Start free trial {I.arrow}</button>
         </div>
       </nav>
 
@@ -62,7 +72,7 @@ export default function LandingPage() {
               attendance, SMS — one connected platform that scales with every barbell you add.
             </motion.p>
             <motion.div variants={fadeUp} style={{ display: 'flex', gap: 12, marginTop: 32 }}>
-              <button className="btn btn-accent btn-lg" onClick={() => navigate('/login')}>Start 30-day trial {I.arrow}</button>
+              <button className="btn btn-accent btn-lg" onClick={goToAdminEntry}>Start 30-day trial {I.arrow}</button>
               <button className="btn btn-lg">Book a demo</button>
             </motion.div>
             <motion.div variants={fadeUp} style={{ display: 'flex', gap: 24, marginTop: 40, flexWrap: 'wrap' }}>
@@ -235,7 +245,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              <button className={p.featured ? 'btn btn-accent btn-lg' : 'btn btn-lg'} style={{ width: '100%' }} onClick={() => navigate('/login')}>
+              <button className={p.featured ? 'btn btn-accent btn-lg' : 'btn btn-lg'} style={{ width: '100%' }} onClick={goToAdminEntry}>
                 {p.featured ? 'Start free trial' : 'Choose plan'}
               </button>
             </motion.div>
@@ -253,7 +263,7 @@ export default function LandingPage() {
             <p style={{ color: 'var(--muted)', margin: '12px 0 0', fontSize: 16 }}>30-day trial. No card. No setup fee.</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-accent btn-lg" onClick={() => navigate('/login')}>Start trial {I.arrow}</button>
+            <button className="btn btn-accent btn-lg" onClick={goToAdminEntry}>Start trial {I.arrow}</button>
             <button className="btn btn-lg">Book demo</button>
           </div>
         </div>
