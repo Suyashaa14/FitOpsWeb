@@ -9,10 +9,15 @@ export function Logo({ size = 'md', light = false }) {
   );
 }
 
-export function Avatar({ name, size }) {
+export function Avatar({ name = '', size, src = '' }) {
   const cls = size === 'sm' ? 'avatar avatar-sm' : size === 'lg' ? 'avatar avatar-lg' : 'avatar';
-  const init = name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
-  return <span className={cls}>{init}</span>;
+  const init = name.split(' ').filter(Boolean).map(s => s[0]).slice(0, 2).join('').toUpperCase() || '?';
+  return (
+    <span className={cls} title={name || undefined}>
+      {init}
+      {src && <img src={src} alt={`${name || 'Client'} profile`} onError={(event) => event.currentTarget.remove()} />}
+    </span>
+  );
 }
 
 export function StatusBadge({ status }) {

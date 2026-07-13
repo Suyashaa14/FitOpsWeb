@@ -247,11 +247,13 @@ a { color: inherit; text-decoration: none; }
 .avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
+  position: relative; overflow: hidden;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--ink); color: var(--bg);
   font-size: 13px; font-weight: 600;
   letter-spacing: .02em; flex-shrink: 0;
 }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .avatar-sm { width: 28px; height: 28px; font-size: 11px; }
 .avatar-lg { width: 56px; height: 56px; font-size: 18px; }
 

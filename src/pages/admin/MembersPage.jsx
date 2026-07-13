@@ -266,7 +266,7 @@ export default function MembersPage() {
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => setView(c)}>
                     <td>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <Avatar name={c.name || '-'} size="sm" />
+                        <Avatar name={c.name || '-'} src={c.photo || ''} size="sm" />
                         <div>
                           <div style={{ fontWeight: 600, fontSize: 13.5 }}>{c.name || '-'}</div>
                           <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>#{c.id}</div>
@@ -310,6 +310,9 @@ export default function MembersPage() {
                 <button className="btn btn-ghost btn-icon" onClick={() => setView(null)}>{I.x}</button>
               </div>
               <div className="modal-body">
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>
+                  <Avatar name={view.name || '-'} src={view.photo || ''} size="lg" />
+                </div>
                 <div className="mono">Phone: {view.phone_number || '-'}</div>
                 <div className="mono">Address: {view.address || '-'}</div>
                 <div className="mono">Sex: {view.sex || '-'}</div>

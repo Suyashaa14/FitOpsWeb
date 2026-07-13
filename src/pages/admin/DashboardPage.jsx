@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Shell from '../../components/layout/Shell';
-import { StatusBadge, I } from '../../components/ui/index.jsx';
+import { Avatar, StatusBadge, I } from '../../components/ui/index.jsx';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../lib/api';
@@ -194,7 +194,12 @@ export default function AdminDashboard() {
               <tbody>
                 {recentClients.map((client) => (
                   <tr key={client.id}>
-                    <td>{client.name || '-'}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+                        <Avatar name={client.name || '-'} src={client.photo || ''} size="sm" />
+                        <span>{client.name || '-'}</span>
+                      </div>
+                    </td>
                     <td className="mono">{client.phone_number || '-'}</td>
                     <td><StatusBadge status={client.status} /></td>
                   </tr>

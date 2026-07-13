@@ -29,6 +29,17 @@ export default function Shell({ role = 'admin', children }) {
   const nav = role === 'super' ? superNav : ownerNav;
   const orgName = role === 'super' ? 'Platform HQ' : (user?.gym || user?.company_name || 'Workspace');
   const userName = role === 'super' ? 'Super Admin' : (user?.name || user?.email || 'Owner');
+  const userPhoto = user?.photo
+    || user?.profile_photo
+    || user?.profilePhoto
+    || user?.avatar
+    || user?.logo
+    || user?.company_logo
+    || user?.company?.company_logo
+    || user?.company?.logo
+    || user?.company_id?.company_logo
+    || user?.company_id?.logo
+    || '';
   const orgInitials = orgName.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase();
 
   useEffect(() => {
@@ -103,7 +114,7 @@ export default function Shell({ role = 'admin', children }) {
           </div>
           <div className="topbar-actions" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <div className="topbar-user" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <Avatar name={userName} size="sm" />
+              <Avatar name={userName} src={userPhoto} size="sm" />
               <div className="topbar-user-meta" style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: 12.5, fontWeight: 600 }}>{userName}</span>
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{role === 'super' ? 'Super Admin' : 'Owner'}</span>
