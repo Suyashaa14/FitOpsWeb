@@ -462,6 +462,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 900px) {
+  .attendance-qr-card { grid-template-columns: 1fr !important; justify-items: center; text-align: center; }
   .page { padding: 18px; }
   .landing-hero, .landing-section { padding-left: 24px; padding-right: 24px; }
   .landing-nav { padding: 16px 24px; }

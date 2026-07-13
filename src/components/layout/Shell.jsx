@@ -12,7 +12,7 @@ const ownerNav = [
   { id: 'trainers', path: '/admin/trainers', label: 'Trainers', icon: I.users },
   { id: 'packages', path: '/admin/packages', label: 'Packages', icon: I.package },
   { id: 'qr-reg', path: '/admin/qr-register', label: 'QR Client Create', icon: I.qr },
-  { id: 'qr-att', path: '/admin/qr-attendance', label: 'QR Attendance', icon: I.qr },
+  { id: 'qr-att', path: '/admin/qr-attendance', label: 'Attendance', icon: I.qr },
 ];
 
 const superNav = [

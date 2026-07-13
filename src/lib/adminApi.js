@@ -70,6 +70,21 @@ export async function checkOutClientAttendance(attendanceId, body, token) {
   return apiRequest(`/api/client/attendance/check-out/${attendanceId}`, { method: 'POST', body, token });
 }
 
+export async function getAttendance({ date = '', search = '', page = 1, limit = 10, token } = {}) {
+  const query = new URLSearchParams({
+    search,
+    page: String(page),
+    limit: String(limit),
+  });
+  if (date) query.set('date', date);
+  return apiRequest(`/api/client/attendance/getAttendance?${query.toString()}`, { token });
+}
+
+export async function getUpcomingExpiry({ page = 1, limit = 10, token } = {}) {
+  const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+  return apiRequest(`/api/client/upcoming-expiry?${query.toString()}`, { token });
+}
+
 export async function getTrainers({ token, id } = {}) {
   const query = new URLSearchParams();
   if (id) query.set('id', String(id));

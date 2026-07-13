@@ -5,7 +5,7 @@ import { StatusBadge, I } from '../../components/ui/index.jsx';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../lib/api';
-import { getClientPayments, getClients, getTrainers } from '../../lib/adminApi';
+import { getClientPayments, getClients, getTrainers, getUpcomingExpiry } from '../../lib/adminApi';
 
 function normalizeStatus(value) {
   const v = (value || '').toLowerCase();
@@ -17,8 +17,20 @@ function readList(response, keys) {
   if (Array.isArray(response)) return response;
   for (const key of keys) {
     if (Array.isArray(response?.[key])) return response[key];
+    if (Array.isArray(response?.data?.[key])) return response.data[key];
   }
   return Array.isArray(response?.data) ? response.data : [];
+}
+
+function expiryClient(item) {
+  return item?.client || item?.client_id || item?.clientId || item?.member || item?.user || {};
+}
+
+function expiryLabel(days) {
+  const value = Number(days);
+  if (!Number.isFinite(value)) return '-';
+  if (value <= 0) return 'Expires today';
+  return `${value} day${value === 1 ? '' : 's'} left`;
 }
 
 export default function AdminDashboard() {
@@ -29,6 +41,8 @@ export default function AdminDashboard() {
   const [trainers, setTrainers] = useState([]);
   const [packages, setPackages] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [upcomingExpiry, setUpcomingExpiry] = useState([]);
+  const [upcomingExpiryTotal, setUpcomingExpiryTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,30 +51,36 @@ export default function AdminDashboard() {
       try {
         const query = new URLSearchParams({ page: '1', limit: '100' });
 
-        const [clientRes, trainerRes, packageRes, paymentRes] = await Promise.all([
+        const [clientRes, trainerRes, packageRes, paymentRes, expiryRes] = await Promise.all([
           getClients({ token: token || undefined }),
           getTrainers({ token: token || undefined }).catch(() => []),
           apiRequest(`/api/package/get?${query.toString()}`, { token: token || undefined }).catch(() => []),
           getClientPayments(token || undefined).catch(() => []),
+          getUpcomingExpiry({ page: 1, limit: 10, token: token || undefined }).catch(() => []),
         ]);
 
         setClients(readList(clientRes, ['clients']).map((client) => ({ ...client, id: client.id || client._id, status: normalizeStatus(client.status) })));
         setTrainers(readList(trainerRes, ['trainers']).map((trainer) => ({ ...trainer, id: trainer.id || trainer._id, status: normalizeStatus(trainer.status) })));
         setPackages(readList(packageRes, ['packages']));
         setPayments(readList(paymentRes, ['payments']).map((payment) => ({ ...payment, id: payment.id || payment._id })));
+        const expiryList = readList(expiryRes, ['upcomingExpiry', 'upcomingExpiries', 'upcoming_expiry', 'expiries', 'subscriptions', 'clients', 'records', 'results']);
+        setUpcomingExpiry(expiryList);
+        setUpcomingExpiryTotal(Number(expiryRes?.pagination?.total ?? expiryRes?.data?.pagination?.total ?? expiryList.length));
       } catch (err) {
         toast(err.message, 'error');
         setClients([]);
         setTrainers([]);
         setPackages([]);
         setPayments([]);
+        setUpcomingExpiry([]);
+        setUpcomingExpiryTotal(0);
       } finally {
         setLoading(false);
       }
     }
 
     loadDashboard();
-  }, []);
+  }, [toast, token]);
 
   const stats = useMemo(() => {
     const activeClients = clients.filter((client) => client.status === 'active').length;
@@ -133,6 +153,34 @@ export default function AdminDashboard() {
             <div className="kpi-delta">from payment API</div>
             <div className="kpi-glyph">{I.trend}</div>
           </div>
+        </div>
+
+        <div className="card card-flush" style={{ overflow: 'hidden', marginBottom: 18 }}>
+          <div className="section-title" style={{ padding: '16px 16px 0' }}>
+            <div>
+              <h3>Upcoming membership expiry</h3>
+              <div className="meta" style={{ marginTop: 4 }}>Subscriptions that need renewal follow-up</div>
+            </div>
+            <span className="chip">{upcomingExpiryTotal} upcoming</span>
+          </div>
+          <table className="table">
+            <thead><tr><th>Member</th><th>Phone</th><th>Days remaining</th><th>Status</th></tr></thead>
+            <tbody>
+              {upcomingExpiry.map((item, index) => {
+                const client = expiryClient(item);
+                const daysRemaining = item.days_remaining ?? item.daysRemaining;
+                return (
+                  <tr key={item.id || item._id || `${client.id || client._id || 'expiry'}-${index}`}>
+                    <td>{client.name || item.client_name || item.name || '-'}</td>
+                    <td className="mono">{client.phone_number || client.phone || item.phone_number || item.phone || '-'}</td>
+                    <td className="mono">{expiryLabel(daysRemaining)}</td>
+                    <td><span className="chip"><span className="dot" style={{ color: 'var(--accent)' }} />Expiring soon</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {!loading && !upcomingExpiry.length && <div style={{ padding: 16, color: 'var(--muted)' }}>No upcoming membership expiries.</div>}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>

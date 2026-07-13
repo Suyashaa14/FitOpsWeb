@@ -33,8 +33,6 @@ export default function QRAttendanceFormPage() {
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('companyId') || '';
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [checkInAt, setCheckInAt] = useState(nowForInput());
-  const [checkOutAt, setCheckOutAt] = useState(nowForInput());
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
@@ -56,7 +54,7 @@ export default function QRAttendanceFormPage() {
     try {
       const payload = {
         phone_number: normalizedPhone,
-        check_in: checkInAt,
+        check_in: nowForInput(),
       };
       const response = await checkInClientAttendance(companyId, payload);
       const attendanceId = readAttendanceId(response);
@@ -64,7 +62,6 @@ export default function QRAttendanceFormPage() {
         localStorage.setItem(attendanceStorageKey(companyId, normalizedPhone), attendanceId);
       }
       setStatusMessage('Check-in successful. Scan again later with the same phone number to check out.');
-      setCheckOutAt(nowForInput());
       toast('Client checked in', 'success');
     } catch (err) {
       toast(err.message, 'error');
@@ -82,12 +79,10 @@ export default function QRAttendanceFormPage() {
 
     setSaving(true);
     try {
-      await checkOutClientAttendance(storedAttendanceId, { check_out: checkOutAt });
+      await checkOutClientAttendance(storedAttendanceId, { check_out: nowForInput() });
       localStorage.removeItem(attendanceStorageKey(companyId, normalizedPhone));
       setStatusMessage('Check-out successful. Thank you.');
       setPhoneNumber('');
-      setCheckInAt(nowForInput());
-      setCheckOutAt(nowForInput());
       toast('Client checked out', 'success');
     } catch (err) {
       toast(err.message, 'error');
@@ -140,10 +135,10 @@ export default function QRAttendanceFormPage() {
               <input
                 className="input mono"
                 type="datetime-local"
-                value={mode === 'checkout' ? checkOutAt : checkInAt}
-                onChange={(e) => mode === 'checkout' ? setCheckOutAt(e.target.value) : setCheckInAt(e.target.value)}
-                required
+                value={nowForInput()}
+                disabled
               />
+              <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>Date and time are set automatically.</span>
             </div>
             {mode === 'checkout' && (
               <div className="field" style={{ gridColumn: '1 / -1' }}>
